@@ -434,6 +434,30 @@ function AddTeamPlanner() {
     return $postResponse.id
 }
 
+function AddPlanBucket() {
+    Param
+    (
+        [parameter(Mandatory = $true)]$planId,
+        [parameter(Mandatory = $true)]$bucketTitle
+    )
+
+    $graphApiBaseUrl = "https://graph.microsoft.com/v1.0"
+
+    # Retrieve access token for graph API
+    $accessToken = GetGraphAPIServiceAccountBearerToken
+
+    Write-Verbose -Verbose -Message "Creating bucket $($bucketTitle) for planId $($planId)..."
+    $graphPOSTEndpoint = "$($graphApiBaseUrl)/planner/buckets"
+    $graphPOSTBody = @{
+        "planId" = $($planId)
+        "name" = $($bucketTitle)
+        "orderHint" = " !"
+    }
+    $postResponse = Invoke-RestMethod -Headers @{Authorization = "Bearer $accessToken" } -Uri $graphPOSTEndpoint -Body $($graphPOSTBody | ConvertTo-Json) -Method Post -ContentType 'application/json'
+
+    return $postResponse.id
+}
+
 function AddPlannerTeamsChannelTab() {
     Param
     (
