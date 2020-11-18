@@ -1029,6 +1029,7 @@ function ProvisionSite {
 
                 if ($eumCreatePlanner) {
                     $planId = AddTeamPlanner -groupId $groupId -planTitle "$($siteTitle) Planner"
+                    AddPlanBucket -planId $planId -bucketTitle "Schedule and Milestones"
                     AddPlannerTeamsChannelTab -groupId $groupId -planTitle "$($siteTitle) Planner" -planId $planId -channelName 'General' -teamsChannelId $generalChannelId  
                 }
             }
@@ -1140,6 +1141,7 @@ function CreateTeamChannel () {
         if ($createPlanner) {
             Write-Verbose -Verbose -Message "Creating Planner for $($channelName)..."
             $planId = AddTeamPlanner -groupId $groupId -planTitle "$($channelName) Planner"
+            AddPlanBucket -planId $planId -bucketTitle "Schedule and Milestones"
             AddPlannerTeamsChannelTab -groupId $groupId -planTitle "$($channelName) Planner" -planId $planId -channelName $channelName -teamsChannelId $teamsChannelId          
         }
 
