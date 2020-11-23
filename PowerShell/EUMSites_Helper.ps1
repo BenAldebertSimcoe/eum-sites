@@ -411,6 +411,42 @@ function AddGroupOwner() {
     }
 }
 
+function AddGroupMember() {
+    Param
+    (
+        [parameter(Mandatory = $true)]$groupId,
+        [parameter(Mandatory = $true)]$email
+    )
+    
+    $graphApiBaseUrl = "https://graph.microsoft.com/v1.0"
+
+    # Retrieve access token for graph API
+    $accessToken = GetGraphAPIBearerToken
+
+    Write-Verbose -Verbose -Message "Adding $($email) as member to groupId $($groupId)..."    
+    $graphPOSTEndpoint = "$($graphApiBaseUrl)/groups/$($groupId)/members/`$ref"
+    $graphPOSTBody = @{
+        "@odata.id" = "$($graphApiBaseUrl)/users/$($email)"
+    }
+
+
+    $retries = 0
+    $groupMemberAdded = $false
+    while (($retries -lt 20) -and (-not $groupMemberAdded)) {
+        try {
+            $retries += 1
+                        
+            $postResponse = Invoke-RestMethod -Headers @{Authorization = "Bearer $accessToken" } -Uri $graphPOSTEndpoint -Body $($graphPOSTBody | ConvertTo-Json) -Method Post -ContentType 'application/json'
+            $groupMemberAdded = $true
+        }
+        catch {      
+            Write-Verbose -Verbose -Message "Failed adding $($email) as member to groupId $($groupId)..."    
+            Write-Verbose -Verbose -Message $_
+            Start-Sleep -Seconds 30
+        }
+    }
+}
+
 function AddTeamPlanner() {
     Param
     (
@@ -969,7 +1005,8 @@ function ProvisionSite {
             # add the requester as an owner of the site's group
             if ($IsSharePointOnline -and ($groupId -ne "00000000-0000-0000-0000-000000000000") -and ($author -ne $SPCredentials.UserName)) {
                 AddGroupOwner -groupID $groupId -email $author
-            }         
+                AddGroupMember -groupID $groupId -email $author
+            }
 
             # add the site to hub site, if it configured
             if ($IsSharePointOnline -and $parentHubSite -and $joinHubSite) {
